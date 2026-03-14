@@ -1,0 +1,47 @@
+# Node
+node_modules/
+*/node_modules/
+
+# Build outputs
+dist/
+*/dist/
+build/
+*/build/
+
+# Vite
+.vite/
+*/.vite/
+
+# Env
+.env
+*/.env
+.env.*.local
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+*.log
+
+# Coverage
+coverage/
+*/coverage/
+.nyc_output/
+
+# Caches
+.cache/
+*/.cache/
+.eslintcache
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editor
+.vscode/
+.idea/
+
+# Misc
+*.pid
+*.seed
