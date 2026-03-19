@@ -50,5 +50,7 @@ Thumbs.db
 *.seed
 
 
-temp-skill/
-*/temp-skill/
+temp-skills/
+*/temp-skills/
+.temp-skills/
+
