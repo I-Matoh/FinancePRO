@@ -33,6 +33,7 @@ coverage/
 .cache/
 */.cache/
 .eslintcache
+.claude
 
 # OS
 .DS_Store
