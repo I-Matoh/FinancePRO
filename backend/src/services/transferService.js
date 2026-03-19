@@ -114,13 +114,20 @@ async function transfer({ senderUserId, receiverEmail, amount }) {
   // Create fraud alert records if suspicious activity detected
   // These go to a review queue for manual investigation
   if (fraudAlerts.length > 0 && transaction?.id) {
-    for (const alert of fraudAlerts) {
-      await supabase.from('fraud_alerts').insert({
-        transaction_id: transaction.id,
-        rule: alert.rule,
-        severity: alert.severity,
-        status: 'OPEN'
-      });
+    try {
+      await Promise.all(
+        fraudAlerts.map((alert) =>
+          supabase.from('fraud_alerts').insert({
+            transaction_id: transaction.id,
+            rule: alert.rule,
+            severity: alert.severity,
+            status: 'OPEN'
+          })
+        )
+      );
+    } catch (err) {
+      // Best effort; do not fail a completed transfer due to alert logging.
+      console.error('fraud_alert_insert_failed', err);
     }
   }
 

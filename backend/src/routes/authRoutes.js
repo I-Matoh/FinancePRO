@@ -35,7 +35,7 @@ const router = express.Router();
  */
 router.post(
   '/register',
-  // Rate limit BEFORE validation to catch滥用 early
+  // Rate limit BEFORE validation to catch abuse early
   rateLimit({ keyPrefix: 'register', windowSeconds: 60, max: 5 }),
   // Zod schema validates and sanitizes input
   validate(z.object({ body: z.object({ email: z.string().email(), password: z.string().min(8) }) })),
@@ -90,3 +90,5 @@ router.post(
 );
 
 module.exports = router;
+
+

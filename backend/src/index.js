@@ -1,13 +1,13 @@
 /**
  * FinancePRO API Entry Point
- * 
+ *
  * Security Architecture:
- * - Helmet: Sets security-focused HTTP headers (HSTS, X-Frame-Options, etc.)
+ * - Helmet: Security-focused HTTP headers
  * - Body parsing limited to 1MB to prevent DoS via large payloads
- * - Cookie-parser: Enables secure cookie handling for JWT storage
+ * - Cookie-parser: Secure cookie handling for JWT storage
  * - Morgan: Request logging for audit trail and intrusion detection
  * - All routes protected by auth middleware (except /health and /auth)
- * 
+ *
  * @module server
  */
 
@@ -26,6 +26,12 @@ const transactionRoutes = require('./routes/transactionRoutes');
 const adminRoutes = require('./routes/adminRoutes');
 
 const app = express();
+
+app.disable('x-powered-by');
+
+if (process.env.TRUST_PROXY === 'true') {
+  app.set('trust proxy', 1);
+}
 
 // Security: Helmet sets multiple HTTP headers to protect against common attacks
 // - X-Content-Type-Options: prevents MIME type sniffing

@@ -5,7 +5,7 @@
  * This is the FIRST line of defense - rejects malformed/malicious input early.
  * 
  * Security Benefits:
- * - Type coercion: Zod normalizes input (e.g., string "123" → number 123)
+ * - Type coercion: Zod normalizes input (e.g., string "123"  number 123)
  * - Parsing: Rejects non-parseable data before it reaches business logic
  * - Strict schemas: Only explicitly allowed fields pass through
  * - Custom refinements: Can add complex validation rules
@@ -53,10 +53,15 @@ function validate(schema) {
       return next();
     } catch (err) {
       // Return validation errors with 400 Bad Request
-      // In production, consider: return res.status(400).json({ error: 'validation_error' });
+      const isProd = process.env.NODE_ENV === 'production';
+      if (isProd) {
+        return res.status(400).json({ error: 'validation_error' });
+      }
       return res.status(400).json({ error: 'validation_error', details: err.errors });
     }
   };
 }
 
 module.exports = { validate };
+
+

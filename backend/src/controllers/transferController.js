@@ -10,10 +10,21 @@ async function transfer(req, res) {
     });
     return res.status(201).json(result);
   } catch (err) {
-    if (err.message === 'receiver_wallet_not_found') return res.status(404).json({ error: 'recipient_not_found' });
-    if (err.message === 'insufficient_funds') return res.status(400).json({ error: 'insufficient_funds' });
-    if (err.message === 'wallet_inactive') return res.status(403).json({ error: 'wallet_inactive' });
-    return res.status(400).json({ error: err.message || 'transfer_failed' });
+    switch (err.message) {
+      case 'receiver_wallet_not_found':
+        return res.status(404).json({ error: 'recipient_not_found' });
+      case 'sender_wallet_not_found':
+        return res.status(404).json({ error: 'wallet_not_found' });
+      case 'insufficient_funds':
+        return res.status(400).json({ error: 'insufficient_funds' });
+      case 'wallet_inactive':
+        return res.status(403).json({ error: 'wallet_inactive' });
+      case 'invalid_amount':
+        return res.status(400).json({ error: 'invalid_amount' });
+      default:
+        console.error('transfer_failed', err);
+        return res.status(500).json({ error: 'transfer_failed' });
+    }
   }
 }
 

@@ -23,6 +23,11 @@ const jwt = require('jsonwebtoken');
 const crypto = require('crypto');
 const { getSupabase } = require('../supabase');
 
+function getNumberEnv(name, fallback) {
+  const value = Number(process.env[name]);
+  return Number.isFinite(value) ? value : fallback;
+}
+
 /**
  * Generates a short-lived JWT access token
  * 
@@ -36,7 +41,7 @@ function signAccessToken(user) {
   return jwt.sign(
     { sub: user.id, role: user.role, email: user.email },
     process.env.JWT_ACCESS_SECRET,
-    { expiresIn: Number(process.env.ACCESS_TOKEN_TTL || 900) } // Default: 15 minutes
+    { expiresIn: getNumberEnv('ACCESS_TOKEN_TTL', 900) } // Default: 15 minutes
   );
 }
 
@@ -53,7 +58,7 @@ function signRefreshToken(user) {
   return jwt.sign(
     { sub: user.id, type: 'refresh' }, // Type claim prevents refresh token reuse as access token
     process.env.JWT_REFRESH_SECRET,
-    { expiresIn: Number(process.env.REFRESH_TOKEN_TTL || 1209600) } // Default: 14 days
+    { expiresIn: getNumberEnv('REFRESH_TOKEN_TTL', 1209600) } // Default: 14 days
   );
 }
 
@@ -154,7 +159,7 @@ async function login({ email, password }) {
 
   // Store hashed refresh token for later revocation
   // TTL from env or default (14 days)
-  const ttl = Number(process.env.REFRESH_TOKEN_TTL || 1209600);
+  const ttl = getNumberEnv('REFRESH_TOKEN_TTL', 1209600);
   await supabase.from('refresh_tokens').insert({
     user_id: user.id,
     token_hash: refreshHash,
@@ -220,7 +225,7 @@ async function refresh({ refreshToken }) {
   // This limits window of vulnerability if token is compromised
   await supabase.from('refresh_tokens').update({ revoked_at: new Date().toISOString() }).eq('id', tokenRes.data.id);
 
-  const ttl = Number(process.env.REFRESH_TOKEN_TTL || 1209600);
+  const ttl = getNumberEnv('REFRESH_TOKEN_TTL', 1209600);
   await supabase.from('refresh_tokens').insert({
     user_id: user.id,
     token_hash: hashToken(nextRefreshToken),

@@ -5,7 +5,10 @@ async function getWallet(req, res) {
     const wallet = await walletService.getWalletByUser(req.user.sub);
     return res.json({ wallet });
   } catch (err) {
-    return res.status(404).json({ error: 'wallet_not_found' });
+    if (err.message === 'wallet_not_found') {
+      return res.status(404).json({ error: 'wallet_not_found' });
+    }
+    return res.status(500).json({ error: 'wallet_fetch_failed' });
   }
 }
 

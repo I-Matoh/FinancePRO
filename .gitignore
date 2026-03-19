@@ -7,7 +7,9 @@ dist/
 */dist/
 build/
 */build/
-
+agents/
+*/agents/   
+.agents/ 
 # Vite
 .vite/
 */.vite/
@@ -46,3 +48,7 @@ Thumbs.db
 # Misc
 *.pid
 *.seed
+
+
+temp-skill/
+*/temp-skill/

@@ -7,10 +7,10 @@
  * - Resource exhaustion from rapid requests
  * 
  * IMPORTANT: This is an in-memory implementation suitable for:
- * - Development/single-instance部署
+ * - Development/single-instance deployment
  * - Basic protection
  * 
- * For production/multi-node部署, replace with:
+ * For production/multi-node deployment, replace with:
  * - Redis-backed rate limiter (shared state)
  * - API gateway rate limiting (AWS API Gateway, Kong, etc.)
  * - CDN rate limiting (Cloudflare, Akamai)
@@ -62,6 +62,7 @@ function rateLimit({ keyPrefix, windowSeconds, max }) {
     if (entry.count > max) {
       // Rate limit exceeded - return 429 Too Many Requests
       // Include Retry-After header in production
+      res.set('Retry-After', String(Math.ceil(windowMs / 1000)));
       return res.status(429).json({ error: 'rate_limited' });
     }
     
@@ -70,3 +71,4 @@ function rateLimit({ keyPrefix, windowSeconds, max }) {
 }
 
 module.exports = { rateLimit };
+

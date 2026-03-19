@@ -11,10 +11,11 @@ async function listTransactions({ userId, page, pageSize, from, to }) {
   const walletIds = (walletRes.data || []).map((w) => w.id);
   if (walletIds.length === 0) return [];
 
+  const quotedIds = walletIds.map((id) => `"${String(id).replace(/"/g, '""')}"`);
   let query = supabase
     .from('transactions')
     .select('id, amount, status, fraud_flag, created_at, sender_wallet_id, receiver_wallet_id')
-    .or(`sender_wallet_id.in.(${walletIds.join(',')}),receiver_wallet_id.in.(${walletIds.join(',')})`)
+    .or(`sender_wallet_id.in.(${quotedIds.join(',')}),receiver_wallet_id.in.(${quotedIds.join(',')})`)
     .order('created_at', { ascending: false })
     .range(fromIdx, toIdx);
 

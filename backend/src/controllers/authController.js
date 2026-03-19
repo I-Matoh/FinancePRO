@@ -15,39 +15,42 @@
 
 const authService = require('../services/authService');
 
+const isProd = process.env.NODE_ENV === 'production';
+const baseCookieOptions = {
+  httpOnly: true,
+  sameSite: 'strict',
+  secure: isProd
+};
+
+function setCookie(res, name, value, maxAgeSeconds) {
+  res.cookie(name, value, {
+    ...baseCookieOptions,
+    maxAge: maxAgeSeconds * 1000
+  });
+}
+
+function clearAuthCookies(res) {
+  res.clearCookie('access_token', baseCookieOptions);
+  res.clearCookie('refresh_token', baseCookieOptions);
+}
+
 /**
  * Sets authentication cookies with secure defaults
- * 
+ *
  * Cookie Security Settings:
  * - httpOnly: Prevents XSS from accessing tokens (JavaScript can't read)
  * - sameSite='strict': CSRF protection - cookies only sent to origin
  * - secure: Only sent over HTTPS (required in production)
  * - maxAge: Aligns with token TTL for automatic expiration
- * 
+ *
  * @param {Object} res - Express response object
  * @param {Object} tokens - Token pair
  * @param {string} tokens.accessToken - JWT access token
  * @param {string} tokens.refreshToken - JWT refresh token
  */
 function setAuthCookies(res, { accessToken, refreshToken }) {
-  // Determine if running in production for secure cookie flag
-  const isProd = process.env.NODE_ENV === 'production';
-  
-  // Access token cookie - short-lived (15 minutes default)
-  res.cookie('access_token', accessToken, {
-    httpOnly: true, // JavaScript cannot access - prevents XSS token theft
-    sameSite: 'strict', // CSRF protection - only sent to this site
-    secure: isProd, // HTTPS only in production
-    maxAge: Number(process.env.ACCESS_TOKEN_TTL || 900) * 1000 // Convert seconds to ms
-  });
-  
-  // Refresh token cookie - longer-lived (14 days default)
-  res.cookie('refresh_token', refreshToken, {
-    httpOnly: true,
-    sameSite: 'strict',
-    secure: isProd,
-    maxAge: Number(process.env.REFRESH_TOKEN_TTL || 1209600) * 1000
-  });
+  setCookie(res, 'access_token', accessToken, Number(process.env.ACCESS_TOKEN_TTL || 900));
+  setCookie(res, 'refresh_token', refreshToken, Number(process.env.REFRESH_TOKEN_TTL || 1209600));
 }
 
 /**
@@ -135,11 +138,16 @@ async function refresh(req, res) {
 async function logout(req, res) {
   // Attempt to revoke token if provided
   const refreshToken = req.cookies?.refresh_token || req.validated.body.refreshToken;
-  if (refreshToken) await authService.logout({ refreshToken });
-  
+  if (refreshToken) {
+    try {
+      await authService.logout({ refreshToken });
+    } catch (err) {
+      console.error('logout_failed', err);
+    }
+  }
+
   // Clear cookies regardless of token presence
-  res.clearCookie('access_token');
-  res.clearCookie('refresh_token');
+  clearAuthCookies(res);
   
   return res.status(204).send();
 }
